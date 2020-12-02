@@ -2,6 +2,7 @@
 
 import requests
 import datetime
+import math
 from operator import itemgetter
 
 # Required in secrets.py:
@@ -57,8 +58,9 @@ def list_accomplishments(stars_by_name, since):
                 stars = 'a star'
             else:
                 stars = '%d stars' % (new_star_count,)
-            emoji = '🌟' * new_star_count
-            results.append('%s %s got %s! %s' % (emoji, name, stars, emoji))
+            emoji_left = '🌟' * math.ceil(new_star_count / 2)
+            emoji_right = '🌟' * math.floor(new_star_count / 2)
+            results.append('%s %s got %s! %s' % (emoji_left, name, stars, emoji_right))
     return results
 
 def send_to_slack(results):
