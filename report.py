@@ -54,14 +54,32 @@ def list_accomplishments(stars_by_name, since):
     for name, new_star_count in new_stars:
         if new_star_count > 0:
             if new_star_count == 1:
-                stars = 'a star'
+                star_text = 'a star'
             else:
-                stars = '%d stars' % (new_star_count,)
-            emoji = '🌟' * new_star_count
-            results.append('%s %s got %s! %s' % (emoji, name, stars, emoji))
+                star_text = '%d stars' % (new_star_count,)
+            emoji = '⭐️' * new_star_count
+            results.append('%s %s got %s! %s' % (emoji, name, star_text, emoji))
     return results
 
+def leaderboard(stars_by_name):
+    new_stars = stars_since(stars_by_name, 0)
+    results = []
+    for name, new_star_count in new_stars:
+        if new_star_count > 0:
+            if new_star_count == 1:
+                star_text = 'a star'
+            else:
+                star_text = '%d stars' % (new_star_count,)
+
+            emoji = '🌟' * (new_star_count // 10)
+            results.append('%s %s has %s! %s' % (emoji, name, star_text, emoji))
+    return results
+
+# expects a list of lines
 def send_to_slack(results):
+    if not SLACKHOOK:
+        print("No SLACKHOOK configured")
+        return
     if results:
         message = '\n'.join(results)
         requests.post(SLACKHOOK, json={'text': message})
@@ -81,11 +99,11 @@ def incremental_run():
 
 def final_standings():
     stars_by_name = fetch_build()
-    results = list_accomplishments(stars_by_name, 0)
+    results = leaderboard(stars_by_name)
     for r in results:
         print(r)
 
-    send_to_slack(['FINAL {} STANDINGS'.format(year), ''] + results)
+    send_to_slack(['FINAL {} STANDINGS'.format(YEAR), ''] + results)
 
 if __name__ == '__main__':
     incremental_run()
