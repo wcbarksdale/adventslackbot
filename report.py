@@ -2,6 +2,7 @@
 
 import requests
 import datetime
+import argparse
 from operator import itemgetter
 
 # Required in secrets.py:
@@ -61,7 +62,7 @@ def list_accomplishments(stars_by_name, since):
             results.append('%s %s got %s! %s' % (emoji, name, star_text, emoji))
     return results
 
-def leaderboard(stars_by_name):
+def build_leaderboard(stars_by_name):
     new_stars = stars_since(stars_by_name, 0)
     results = []
     for name, new_star_count in new_stars:
@@ -87,23 +88,38 @@ def send_to_slack(results):
     else:
         print("Nothing to send!")
 
-def incremental_run():
+def incremental_run(dry=False):
     print(str(datetime.datetime.now()))
     stars_by_name = fetch_build()
     results = list_accomplishments(stars_by_name, last_run())
     for r in results:
         print(r)
 
-    send_to_slack(results)
-    record_last_run(stars_by_name)
+    if not dry:
+        send_to_slack(results)
+        record_last_run(stars_by_name)
 
-def final_standings():
+def leaderboard(message, dry=False):
     stars_by_name = fetch_build()
-    results = leaderboard(stars_by_name)
+    results = build_leaderboard(stars_by_name)
     for r in results:
         print(r)
 
-    send_to_slack(['FINAL {} STANDINGS'.format(YEAR), ''] + results)
+    if not dry:
+        send_to_slack([message, ''] + results)
 
 if __name__ == '__main__':
-    incremental_run()
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-i", "--incremental", action="store_true")
+    group.add_argument("-l", "--leaderboard", action="store_true")
+    group.add_argument("-f", "--final", action="store_true")
+
+    parser.add_argument("-d", "--dry", action="store_true")
+    args = parser.parse_args()
+    if args.incremental:
+        incremental_run(dry=args.dry)
+    elif args.leaderboard:
+        leaderboard("LEADERBOARD", dry=args.dry)
+    elif args.final:
+        leaderboard('FINAL {} STANDINGS'.format(YEAR), dry=args.dry)
