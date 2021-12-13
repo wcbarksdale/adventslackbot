@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 
 import requests
 import datetime
@@ -11,7 +11,7 @@ from operator import itemgetter
 # LEADERBOARD="123..." (View your private leaderboard at https://adventofcode.com/2020/leaderboard/private and copy the id)
 from secrets import *
 
-YEAR=2020
+YEAR=2021
 
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
