@@ -3,6 +3,8 @@
 import requests
 import datetime
 import argparse
+import random
+from collections import defaultdict
 from operator import itemgetter
 
 # Required in secrets.py:
@@ -46,6 +48,7 @@ def stars_since(stars_by_name, since):
         new_star_count = len([star for star in stars if star > since])
         if new_star_count > 0:
             results.append((name, new_star_count))
+    random.shuffle(results)
     results.sort(reverse=True, key=itemgetter(1))
     return results
 
@@ -64,16 +67,21 @@ def list_accomplishments(stars_by_name, since):
 
 def build_leaderboard(stars_by_name):
     new_stars = stars_since(stars_by_name, 0)
-    results = []
+    by_star_group = defaultdict(list)
+
     for name, new_star_count in new_stars:
         if new_star_count > 0:
-            if new_star_count == 1:
-                star_text = 'a star'
-            else:
-                star_text = '%d stars' % (new_star_count,)
+            by_star_group[new_star_count // 10].append('%s (%d)' % (name, new_star_count))
 
-            emoji = '🌟' * (new_star_count // 10)
-            results.append('%s %s has %s! %s' % (emoji, name, star_text, emoji))
+    results = []
+    for star_group in range(5, -1, -1):
+        players = by_star_group[star_group]
+        if len(players) > 0:
+            emoji = '🌟' * star_group
+            players_by_three = [players[i:i + 3] for i in range(0, len(players), 3)]
+            for pl in players_by_three:
+                results.append('%s %s %s' % (emoji, ' '.join(pl), emoji))
+
     return results
 
 # expects a list of lines
